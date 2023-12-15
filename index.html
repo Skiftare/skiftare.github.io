@@ -160,6 +160,7 @@
   }
   function Filter()
   {
+    document.getElementById("sender").value = document.getElementById("sender").value.replace(/[^01]/g, "");
     document.getElementById("sender").addEventListener("input", function() {
       this.value = this.value.replace(/[^01]/g, "");
     });
