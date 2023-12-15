@@ -19,10 +19,7 @@
   </div>
 
   <label>
-    <input type="text" id="sender"
-           onpaste ="Filter()"; oninput ="Filter();" ondrag="Filter"; onauxclick="Filter"
-
-           placeholder="input your code there"/>
+    <input type="text" id="sender" oninput = "Filter();" placeholder="input your code there"/>
   </label>
   <label>
 
@@ -163,7 +160,8 @@
   }
   function Filter()
   {
-    var filter = "01";
-    window.event.returnValue = (filter.indexOf(String.fromCharCode(window.event.keyCode)) != -1);
+    document.getElementById("sender").addEventListener("input", function() {
+      this.value = this.value.replace(/[^01]/g, "");
+    });
   }
 </script>
