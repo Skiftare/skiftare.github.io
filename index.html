@@ -1,0 +1,166 @@
+<!doctype html>
+<html class="no-js" lang="">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <link rel="stylesheet" href="css/style.css">
+  <meta name="description" content="">
+
+</head>
+
+<body>
+
+<form>
+
+  <div class="segment">
+    <h1>Hamming</h1>
+  </div>
+
+  <label>
+    <input type="text" id="sender" onkeypress="Filter();" placeholder="input your code there"/>
+  </label>
+  <label>
+
+  </label>
+
+
+  <div class="input-group">
+    <label>
+    <button class="red" type="button" onclick="Code()"><i class="icon ion-md-lock"></i>Code</button>
+    </label>
+    <button class="red" type="button" onclick="Decode()"><i class="icon ion-md-lock"></i>Decode</button>
+  </div>
+  <label>
+
+  </label>
+
+
+
+  <label>
+    <input type="text" id = "reciever" placeholder="Decoded message"/>
+  </label>
+  <label>
+      <input type="text" id = "putputLog" placeholder="Extra info about decoding"/>
+  </label>
+
+
+
+</form>
+</body>
+
+
+<script>
+  function isPowerOfTwo(number) {
+    return (number & (number - 1)) === 0;
+  }
+  function codeToHamming(s){
+    var res = "";
+    var p = s.length-1;
+    var cnt = 0;
+    for(var i = 0;p>= 0;i++){
+      if(isPowerOfTwo(i+1)){
+        res+="_"
+        cnt++;
+      }
+      else{
+        res+=s.charAt(p);
+        p--;
+      }
+    }
+    var bitMask = 0;
+    for(var i = 0;i<res.length;i++){
+      if(res.charAt(i) === '1'){
+        bitMask^=(i+1);
+      }
+    }
+    var bitsAsStr = bitMask.toString(2)
+    //WSH.echo(bitsAsStr)
+    p = 0;
+    var ans = "";
+    while(bitsAsStr.length < cnt){
+      bitsAsStr = bitsAsStr+"0";
+    }
+    for(var i = res.length-1;i>=0;i--){
+      if(res.charAt(i) === '_'){
+          ans+=bitsAsStr.charAt(p);
+          p++;
+
+
+      }
+      else{
+        ans+=res.charAt(i);
+      }
+    }
+
+    return ans
+  }
+  function decodeFromHamming(s){
+    var a = 0;
+    for(var i = 0;i<s.length;i++){
+      if(s.charAt(i) === '1'){
+        //WSH.echo(s.length - i)
+        a^=(s.length-i);
+      }
+    }
+    var ans = "";
+    if(a === 0){
+      for(var i = 0;i<s.length;i++){
+        if(!isPowerOfTwo(i+1)){
+          ans=s.charAt(s.length - i-1)+ans;
+        }
+      }
+      ans+="#[Message was't even corrupted]"
+    }
+    else if(a<s.length){
+      var ss = "";
+      for(var i = 0;i<s.length;i++){
+        if(i!= (s.length - a)){
+          ss+=s.charAt(i);
+        }
+        else{
+          ss+=(parseInt(s.charAt(i)) ^ 1).toString()
+        }
+      }
+      var aa = 0;
+      for(var i = 0;i<ss.length;i++){
+        if(ss.charAt(i) === '1'){
+          aa^=(ss.length-i);
+        }
+      }
+      //WSH.echo(aa)
+      if(aa != 0){
+        ans = "#[Unable to decode, smth went wrong]"
+      }
+      else{
+        for(var i = 0;i<ss.length;i++){
+          if(!isPowerOfTwo(i+1)){
+            ans=ss.charAt(s.length - i-1)+ans;
+          }
+        }
+        ans+="#[Bit on the pos"+a.toString()+" was corrupted]";
+      }
+
+    }
+    else{
+      ans = "Error"+"#[Unable to decode, smth went wrong]"
+    }
+    return ans;
+  }
+  function Code(){
+    var x  = codeToHamming(sender.value)
+    reciever.value = x.split('#')[0];
+    putputLog.value = "coded successfully";
+  }
+  function Decode(){
+    var x = decodeFromHamming(sender.value)
+    reciever.value = x.split('#')[0];
+    putputLog.value = x.split('#')[1];
+  }
+  function Filter()
+  {
+    var filter = "01";
+    window.event.returnValue = (filter.indexOf(String.fromCharCode(window.event.keyCode)) != -1);
+  }
+</script>
