@@ -29,14 +29,14 @@ body, html {
 /* Header Styles */
 .main-header {
     background-color: var(--bg-secondary);
-    padding: 80px 0;
+    padding: 40px 0;
     text-align: center;
     border-bottom: 2px solid var(--accent);
 }
 
 .main-header h1 {
-    font-size: 3.5rem;
-    margin-bottom: 10px;
+    font-size: 2.8rem;
+    margin-bottom: 8px;
     color: var(--accent);
     text-transform: lowercase;
     letter-spacing: 2px;
@@ -44,18 +44,18 @@ body, html {
 
 .subtitle {
     color: var(--text-secondary);
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 /* Section Styles */
 section {
-    padding: 60px 0;
+    padding: 30px 0;
 }
 
 h2 {
     color: var(--text-primary);
     font-size: 2rem;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
     position: relative;
     padding-bottom: 10px;
 }
@@ -80,9 +80,10 @@ h2::after {
 
 .project-card {
     background-color: var(--bg-secondary);
-    padding: 25px;
+    padding: 20px;
     border-radius: 10px;
     transition: transform 0.3s ease;
+    margin-bottom: 20px;
 }
 
 .project-card:hover {
@@ -127,8 +128,9 @@ h2::after {
 
 .skill-category {
     background-color: var(--bg-secondary);
-    padding: 20px;
+    padding: 15px;
     border-radius: 10px;
+    margin-bottom: 20px;
 }
 
 .skill-category h3 {
@@ -180,7 +182,7 @@ footer {
     background-color: var(--bg-secondary);
     padding: 20px 0;
     text-align: center;
-    margin-top: 60px;
+    margin-top: 30px;
 }
 
 footer p {
@@ -190,20 +192,66 @@ footer p {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .main-header h1 {
-        font-size: 2.5rem;
+    main.container {
+        display: flex;
+        flex-direction: column;
     }
 
-    .subtitle {
-        font-size: 1rem;
+    section.connect {
+        order: -1;
+        padding: 20px 0;
     }
 
     section {
-        padding: 40px 0;
+        padding: 20px 0;
     }
 
-    .project-grid {
+    .main-header {
+        padding: 25px 0;
+    }
+
+    .main-header h1 {
+        font-size: 2.2rem;
+    }
+
+    .subtitle {
+        font-size: 0.9rem;
+    }
+
+    .project-grid, 
+    .skills-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .project-card,
+    .skill-category {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    .social-links {
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .social-link {
+        padding: 8px 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 0 15px;
+    }
+
+    .main-header h1 {
+        font-size: 2rem;
+    }
+
+    .project-card,
+    .skill-category {
+        padding: 12px;
     }
 }
 
