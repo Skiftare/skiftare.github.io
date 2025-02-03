@@ -1,168 +1,157 @@
-<!doctype html>
-<html class="no-js" lang="">
-
-<header>
+<!DOCTYPE html>
+<html lang="en">
+<head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
+  <title>skiftare | Cybersecurity Student</title>
   <link rel="stylesheet" href="css/style.css">
-  <meta name="description" content="">
-
-</header>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
 
 <body>
-
-<form>
-
-  <div class="segment">
-    <h1>Hamming</h1>
+<header class="main-header">
+  <div class="container">
+    <h1>Skiftare</h1>
+    <p class="subtitle">Cybersecurity Student | Backend Developer | CTF Player</p>
   </div>
+</header>
 
-  <label>
-    <input type="text" id="sender" onclick = "Filter();" placeholder="input your code there"/>
-  </label>
-  <label>
+<main class="container">
+  <section class="about">
+    <h2>About Me</h2>
+    <p>Computer Security student at Mathematics and Mechanics Institute (UrFU). Passionate about backend development and
+      cybersecurity. Currently focusing on building secure applications and participating in CTF competitions.</p>
+  </section>
 
-  </label>
+  <section class="projects">
+    <h2>Featured Projects</h2>
+    <div class="project-grid">
+      <div class="project-card">
+        <h3>MicroTik Admin Bot</h3>
+        <p>Secure VPN management system using Cloud Hosted Router MikroTik as a gateway. Features cryptocurrency
+          payments, user profiles, and gRPC communication.</p>
+        <div class="project-details" style="display: none;">
+          <h4>Tech Stack:</h4>
+          <ul>
+            <li>Java (Spring Boot)</li>
+            <li>gRPC</li>
+            <li>PostgreSQL</li>
+            <li>Docker & Docker Compose</li>
+            <li>Stellar Blockchain Integration</li>
+            <li>MikroTik API</li>
+          </ul>
+          <p>A comprehensive solution for secure VPN administration through Telegram interface with automated payment
+            processing and user management.</p>
+        </div>
+        <button class="details-toggle">Show Details</button>
+        <a href="https://github.com/Skiftare/MickroTikBot" class="project-link">
+          <i class="fab fa-github"></i> View on GitHub
+        </a>
+      </div>
+      <div class="project-card">
+        <h3>Link Tracker</h3>
+        <p>Content update tracking system for GitHub and StackOverflow with Telegram notifications.</p>
+        <div class="project-details" style="display: none;">
+          <h4>Tech Stack:</h4>
+          <ul>
+            <li>Java 21</li>
+            <li>Spring Boot 3</li>
+            <li>PostgreSQL</li>
+            <li>Apache Kafka</li>
+            <li>Microservices Architecture</li>
+          </ul>
+          <p>Consists of two microservices: Bot and Scrapper, designed to monitor and notify users about updates in
+            specified topics and repositories.</p>
+        </div>
+        <button class="details-toggle">Show Details</button>
+        <a href="https://github.com/Skiftare/Java2024" class="project-link">
+          <i class="fab fa-github"></i> View on GitHub
+        </a>
+      </div>
+    </div>
+  </section>
 
+  <section class="connect">
+    <h2>Let's Connect</h2>
+    <div class="social-links">
+      <a href="https://github.com/skiftare" class="social-link">
+        <i class="fab fa-github"></i> GitHub
+      </a>
+      <a href="https://t.me/skiftare" class="social-link">
+        <i class="fab fa-telegram"></i> Telegram
+      </a>
+      <!-- Add other social links as needed -->
+    </div>
+  </section>
 
-  <div class="input-group">
-    <label>
-    <button class="red" type="button" onclick="Code()"><i class="icon ion-md-lock"></i>Code</button>
-    </label>
-    <button class="red" type="button" onclick="Decode()"><i class="icon ion-md-lock"></i>Decode</button>
+  <section class="skills">
+    <h2>Technical Skills</h2>
+    <div class="skills-grid">
+      <div class="skill-category">
+        <h3>Programming Languages</h3>
+        <ul>
+          <li>C++ (High-performance computing)</li>
+          <li>Java (Production backend development)</li>
+          <li>Python (Rapid prototyping & Security tools)</li>
+        </ul>
+      </div>
+      <div class="skill-category">
+        <h3>Backend Development</h3>
+        <ul>
+          <li>Spring Framework</li>
+          <li>gRPC</li>
+          <li>RESTful APIs</li>
+          <li>Database Design</li>
+          <li>Microservices Architecture</li>
+          <li>Apache Kafka</li>
+        </ul>
+      </div>
+      <div class="skill-category">
+        <h3>Security</h3>
+        <ul>
+          <li>Web Application Security</li>
+          <li>Security Automation</li>
+          <li>Custom Security Tools Development</li>
+          <li>Penetration Testing</li>
+        </ul>
+      </div>
+      <div class="skill-category">
+        <h3>DevOps & Infrastructure</h3>
+        <ul>
+          <li>Docker Containerization</li>
+          <li>Kubernetes Orchestration</li>
+          <li>CI/CD Pipelines</li>
+          <li>Infrastructure as Code</li>
+          <li>MikroTik Administration</li>
+        </ul>
+      </div>
+      <div class="skill-category">
+        <h3>Additional Technologies</h3>
+        <ul>
+          <li>PostgreSQL</li>
+          <li>Stellar Blockchain Integration</li>
+          <li>Telegram Bot API</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="container">
+    <p>© 2024 skiftare. All rights reserved.</p>
   </div>
-  <label>
-
-  </label>
-
-
-
-  <label>
-    <input type="text" id = "reciever" placeholder="Result message" readonly/>
-  </label>
-  <label>
-      <input type="text" id = "putputLog" placeholder="Extra info" readonly/>
-  </label>
-
-
-
-</form>
-</body>
-
+</footer>
 
 <script>
-  function isPowerOfTwo(number) {
-    return (number & (number - 1)) === 0;
-  }
-  function codeToHamming(s){
-    var res = "";
-    var p = s.length-1;
-    var cnt = 0;
-    for(var i = 0;p>= 0;i++){
-      if(isPowerOfTwo(i+1)){
-        res+="_"
-        cnt++;
-      }
-      else{
-        res+=s.charAt(p);
-        p--;
-      }
-    }
-    var bitMask = 0;
-    for(var i = 0;i<res.length;i++){
-      if(res.charAt(i) === '1'){
-        bitMask^=(i+1);
-      }
-    }
-    var bitsAsStr = bitMask.toString(2)
-    //WSH.echo(bitsAsStr)
-    p = 0;
-    var ans = "";
-    while(bitsAsStr.length < cnt){
-      bitsAsStr = bitsAsStr+"0";
-    }
-    for(var i = res.length-1;i>=0;i--){
-      if(res.charAt(i) === '_'){
-          ans+=bitsAsStr.charAt(p);
-          p++;
-
-
-      }
-      else{
-        ans+=res.charAt(i);
-      }
-    }
-
-    return ans
-  }
-  function decodeFromHamming(s){
-    var a = 0;
-    for(var i = 0;i<s.length;i++){
-      if(s.charAt(i) === '1'){
-        //WSH.echo(s.length - i)
-        a^=(s.length-i);
-      }
-    }
-    var ans = "";
-    if(a === 0){
-      for(var i = 0;i<s.length;i++){
-        if(!isPowerOfTwo(i+1)){
-          ans=s.charAt(s.length - i-1)+ans;
-        }
-      }
-      ans+="#[Message was't even corrupted]"
-    }
-    else if(a<s.length){
-      var ss = "";
-      for(var i = 0;i<s.length;i++){
-        if(i!= (s.length - a)){
-          ss+=s.charAt(i);
-        }
-        else{
-          ss+=(parseInt(s.charAt(i)) ^ 1).toString()
-        }
-      }
-      var aa = 0;
-      for(var i = 0;i<ss.length;i++){
-        if(ss.charAt(i) === '1'){
-          aa^=(ss.length-i);
-        }
-      }
-      //WSH.echo(aa)
-      if(aa != 0){
-        ans = "#[Unable to decode, smth went wrong]"
-      }
-      else{
-        for(var i = 0;i<ss.length;i++){
-          if(!isPowerOfTwo(i+1)){
-            ans=ss.charAt(s.length - i-1)+ans;
-          }
-        }
-        ans+="#[Bit on the pos"+a.toString()+" was corrupted]";
-      }
-
-    }
-    else{
-      ans = "Error"+"#[Unable to decode, smth went wrong]"
-    }
-    return ans;
-  }
-  function Code(){
-    var x  = codeToHamming(sender.value)
-    reciever.value = x.split('#')[0];
-    putputLog.value = "coded successfully";
-  }
-  function Decode(){
-    var x = decodeFromHamming(sender.value)
-    reciever.value = x.split('#')[0];
-    putputLog.value = x.split('#')[1];
-  }
-  function Filter()
-  {
-    document.getElementById("sender").value = document.getElementById("sender").value.replace(/[^01]/g, "");
-    document.getElementById("sender").addEventListener("input", function() {
-      this.value = this.value.replace(/[^01]/g, "");
+  document.querySelectorAll('.details-toggle').forEach(button => {
+    button.addEventListener('click', () => {
+      const details = button.previousElementSibling;
+      const isHidden = details.style.display === 'none';
+      details.style.display = isHidden ? 'block' : 'none';
+      button.textContent = isHidden ? 'Hide Details' : 'Show Details';
     });
-  }
+  });
 </script>
+</body>
+</html>
