@@ -1,0 +1,142 @@
+:root{
+  --maxw: 920px;
+  --fg: #111;
+  --muted: #555;
+  --link: #0645ad;
+  --bg: #fff;
+  --hr: #ddd;
+  --soft: #f7f7f7;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+*{ box-sizing: border-box; }
+html, body, button, input, textarea, select { font-family: var(--mono); }
+html, body { height: 100%; }
+body{
+  margin: 0;
+  font-family: var(--mono);
+  background: var(--bg);
+  color: var(--fg);
+  line-height: 1.55;
+}
+.container{
+  max-width: var(--maxw);
+  margin: 48px auto 72px;
+  padding: 0 22px;
+}
+
+/* ── язык: RU по умолчанию ── */
+[data-lang=en]{ display: none; }
+html[data-language=en] [data-lang=ru]{ display: none; }
+html[data-language=en] [data-lang=en]{ display: initial; }
+/* сгенерированные cms-блоки (.lang-ru/.lang-en) */
+.lang-en{ display: none; }
+html[data-language=en] .lang-ru{ display: none; }
+html[data-language=en] .lang-en{ display: block; }
+
+.sr-only{ position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); border: 0; }
+
+.site-head{ margin-bottom: 34px; }
+.site-title{ font-size: 2.2rem; font-weight: 700; margin: 0 0 6px; }
+.title-link{ color: var(--fg); text-decoration: none; }
+.title-link:hover{ text-decoration: none; }
+.taglines{ margin: 0 0 18px; color: var(--muted); line-height: 1.45; }
+.taglines div{ margin: 2px 0; }
+
+.nav{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  margin: 14px 0 0;
+  padding: 0;
+  font-size: .95rem;
+}
+.nav a{
+  color: var(--fg);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 2px;
+}
+.nav a:hover{ border-bottom-color: var(--fg); }
+.nav a.active{ font-weight: 700; border-bottom-color: var(--fg); }
+.nav-inline{ margin-top: 26px; display: flex; flex-wrap: wrap; gap: 12px; }
+.nav-inline a{ color: var(--link); }
+.nav-right{ margin-left: auto; display: inline-flex; gap: 10px; }
+.nav-right button{
+  border: 1px solid var(--hr);
+  background: transparent;
+  border-radius: 6px;
+  padding: 3px 9px;
+  font-size: .82rem;
+  cursor: pointer;
+  color: var(--muted);
+}
+.nav-right button[aria-pressed="true"]{
+  color: var(--fg);
+  border-color: var(--fg);
+  font-weight: 700;
+}
+
+h1{ font-size: 1.9rem; margin: 0 0 12px; }
+h2{ font-size: 1.45rem; margin: 0 0 10px; }
+h2.h2-sub{ margin-top: 30px; font-size: 1.25rem; }
+h3{ font-size: 1.02rem; margin: 0 0 6px; }
+p{ margin: 8px 0; }
+hr{ border: 0; border-top: 1px solid var(--hr); margin: 26px 0; }
+
+a{ color: var(--link); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+
+.small{ color: var(--muted); font-size: .9rem; }
+.lede{ font-size: 1.05rem; max-width: 68ch; }
+
+section{ margin: 30px 0; }
+section h2{ font-size: 1.45rem; }
+
+.card{
+  border: 1px solid var(--hr);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 12px 0 14px;
+}
+.card h3{ display: flex; align-items: center; gap: 8px; }
+.card p:last-child{ margin-bottom: 0; }
+
+.pg-title{ font-size: 1.6rem; margin-bottom: 16px; }
+
+.footer{
+  margin-top: 46px;
+  padding-top: 16px;
+  border-top: 1px solid var(--hr);
+  color: var(--muted);
+  font-size: .9rem;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 640px){
+  .container{ margin-top: 28px; }
+  .site-title{ font-size: 1.8rem; }
+  .footer{ flex-direction: column; gap: 4px; }
+}
+
+/* ── артефакты (автоблок со страницы «Артефакты») ── */
+.artifacts{ list-style: none; padding: 0; margin: 14px 0 0; }
+.artifacts li{ margin: 7px 0; }
+.artifacts li a{ color: var(--link); text-decoration: underline dotted; text-underline-offset: 3px; }
+.artifacts li a:hover{ text-decoration: underline; }
+.tag{ color: var(--muted); font-size: .82em; margin-left: 2px; }
+.artifact-open{ margin: 16px 0 0; }
+.artifact-open a{ color: var(--link); text-decoration: underline dotted; text-underline-offset: 3px; font-size: 1.1em; }
+.artifact-open a:hover{ text-decoration: underline; }
+
+/* ── языки: по умолчанию RU, EN скрыт; переключается через data-language на <html>
+   (app.js ставит атрибут). Работает и БЕЗ js: показывается только русский. ── */
+.lang-en{ display: none; }
+[data-lang="en"]{ display: none; }
+html[data-language="en"] .lang-ru{ display: none; }
+html[data-language="en"] .lang-en{ display: block; }
+html[data-language="en"] [data-lang="ru"]{ display: none; }
+html[data-language="en"] [data-lang="en"]{ display: inline; }
