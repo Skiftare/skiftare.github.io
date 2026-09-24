@@ -56,6 +56,9 @@ button:disabled{color:#999;border-color:var(--hr);cursor:default}
 button.danger{color:#8a0000;border-color:#8a0000}
 button.danger:hover{background:#8a0000;color:#fff}
 button.active{background:#111;color:#fff;border-color:#111}
+button.stop{color:#8a0000;border-color:#8a0000}
+button.stop:hover{background:#8a0000;color:#fff}
+button.stop:disabled{color:#999;border-color:var(--hr);cursor:default}
 .power-hint{color:var(--muted);font-size:.8rem}
 
 .speed{margin:16px 0 2px;font-size:1.05rem;white-space:pre;min-height:1.3em;font-weight:700}
@@ -101,6 +104,7 @@ button.active{background:#111;color:#fff;border-color:#111}
   <button id="b-12m">жечь 12 минут</button>
   <button id="b-1g">жечь 1 гигабайт</button>
   <button id="b-cont">жечь пока не остановлю</button>
+  <button id="b-stop" class="stop" disabled>стоп</button>
   <button id="b-reset" class="danger">сбросить</button>
 </div>
 
@@ -243,26 +247,26 @@ function stopRun(){
     save(K.total, total);
     render();
     setRunDisabled(false);
-    $('b-cont').textContent = 'жечь пока не остановлю';
-    $('b-cont').classList.remove('active');
     $('flame').classList.remove('blazing');
     $('flame').classList.remove('running');
     $('speed').textContent = 'на паузе — жми кнопку';
   };
   wait();
 }
-function setRunDisabled(d){ $('b-12m').disabled = $('b-1g').disabled = d; }
+function setRunDisabled(d){
+  $('b-12m').disabled = $('b-1g').disabled = $('b-cont').disabled = d;
+  $('b-stop').disabled = !d;
+}
 
 $('b-12m').addEventListener('click', function(){ beginRun({ streams: power(), seconds: 720, tag: 'раунд 12 минут, ' + power() + ' потоков' }); });
 $('b-1g').addEventListener('click', function(){ beginRun({ streams: power(), maxBytes: 1024, tag: 'цель 1 гигабайт, ' + power() + ' потоков' }); });
 $('b-cont').addEventListener('click', function(){
-  if (runActive) { stopRun(); return; }
+  if (runActive) return;
   contRun = true;
   beginRun({ streams: power(), tag: 'режим «пока не остановлю», ' + power() + ' потоков' });
-  $('b-cont').textContent = 'стоп';
-  $('b-cont').classList.add('active');
   $('flame').classList.add('blazing');
 });
+$('b-stop').addEventListener('click', function(){ if (runActive) stopRun(); });
 $('b-reset').addEventListener('click', function(){
   if (runActive) stopRun();
   if (!confirm('Сжечь статистику вместе с трафиком?')) return;
