@@ -162,7 +162,11 @@ var CONT_QUOTES = [
   'дым столбом, бабушка звонит, «что за дым»',
   'кажется, я вижу дельту своими глазами'
 ];
-function eq(mb){ return 'эквивалент: ' + (mb >= 1024 ? fmt(mb/1024) + ' ютуба в 480p' : Math.max(1, Math.round(mb*0.6)) + ' минут ютуба в 480p'); }
+function eq(mb){
+  var mins = mb / 2.5;                     // 480p ≈ 2.5 МБ/мин
+  if (mins >= 60) return 'эквивалент: ' + (mins / 60).toFixed(1) + ' ч ютуба в 480p';
+  return 'эквивалент: ' + Math.max(1, Math.round(mins)) + ' мин ютуба в 480p';
+}
 function rate(){ return 0.4 + Math.min(9, Math.max(1, parseInt($('power').value, 10) || 3)) * 0.35; }
 
 var qidx = Math.floor(Math.random() * QUOTES.length), cqidx = 0;
