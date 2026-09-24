@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ru">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Сжигатель трафика — шуточный проект: жги мегабайты и смотри на огонь.">
+<meta name="description" content="Сжигатель трафика — шуточный проект: жги мегабайты, смотри на огонь и на дельту 1080p против 4K.">
 <meta name="theme-color" content="#ffffff"><title>Сжигатель трафика</title>
 <style>
 :root{
@@ -25,6 +25,10 @@ h1{font-size:2rem;font-weight:700;margin:18px 0 6px}
 .flame .f3{animation:fr 230ms steps(3) infinite reverse}
 @keyframes fr{from{opacity:.75;transform:scaleY(1)}to{opacity:1;transform:scaleY(1.06)}}
 @keyframes fr2{from{opacity:.8;transform:scaleX(.92)}to{opacity:1;transform:scaleX(1.05)}}
+.flame.blazing svg{opacity:1}
+.flame.blazing .f1{animation:fr 80ms steps(2) infinite}
+.flame.blazing .f2{animation:fr2 110ms steps(2) infinite}
+.flame.blazing .f3{animation:fr 130ms steps(3) infinite reverse}
 
 .counters{display:flex;gap:0;margin:4px 0 6px;border:1px solid var(--hr);border-radius:10px;overflow:hidden}
 .counter{flex:1;padding:10px 14px;border-right:1px solid var(--hr)}
@@ -32,6 +36,10 @@ h1{font-size:2rem;font-weight:700;margin:18px 0 6px}
 .counter .lab{color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.05em}
 .counter .val{font-size:1.35rem;font-weight:700;margin-top:2px}
 .counter .val small{color:var(--muted);font-size:.8rem}
+
+.equiv{margin:10px 0 2px;border:1px solid var(--hr);border-radius:10px;padding:10px 14px;color:var(--muted);font-size:.85rem;line-height:1.6}
+.equiv .e-row{white-space:pre}
+.equiv .e-cap{color:var(--fg);font-size:.8rem;margin-top:4px}
 
 .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0 0}
 .controls label{font-size:.9rem;color:var(--muted)}
@@ -45,6 +53,7 @@ button:hover{border-color:var(--fg)}
 button:disabled{color:#999;border-color:var(--hr);cursor:default}
 button.danger{color:#8a0000;border-color:#8a0000}
 button.danger:hover{background:#8a0000;color:#fff}
+button.active{background:#111;color:#fff;border-color:#111}
 .power-hint{color:var(--muted);font-size:.8rem}
 
 .progress{margin:16px 0 2px;font-size:.95rem;white-space:pre;min-height:1.3em}
@@ -57,7 +66,7 @@ button.danger:hover{background:#8a0000;color:#fff}
 <div class="top"><a href="../space.html">← пространство</a><span>localStorage · без сервера · без смысла</span></div>
 
 <h1>Сжигатель трафика</h1>
-<p class="sub">Качаем мусор, сжигаем его и смотрим на огонь. Ничего не передаётся на сервер: ты сжигаешь трафик собственного устройства — считаем в твоём браузере.</p>
+<p class="sub">Качаем мусор, сжигаем его и смотрим на огонь. Можно жечь порциями, а можно включить режим «пока не остановлю» — и смотреть, как 4K-эквивалент улетает дальше 1080p. Всё считается в твоём браузере, на сервер ничего не уходит.</p>
 
 <div class="flame" id="flame" style="--burn:0.15">
 <svg viewBox="0 0 120 100" fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
@@ -77,20 +86,27 @@ button.danger:hover{background:#8a0000;color:#fff}
   <div class="counter"><div class="lab">рекорд</div><div class="val" id="c-best">0<small> МБ</small></div></div>
 </div>
 
+<div class="equiv" id="equiv">
+  <div class="e-row" id="e-session">сессия: 0 МБ — это 0 минут 1080p · 0 минут 4K</div>
+  <div class="e-row" id="e-total">всего:   0 МБ — это 0 минут 1080p · 0 минут 4K</div>
+  <div class="e-cap">4K сжирает в ~6,3× больше 1080p (YouTube, средний битрейт)</div>
+</div>
+
 <div class="controls">
   <label for="power">мощность</label>
   <input type="number" id="power" min="1" max="9" step="1" value="3" inputmode="numeric">
-  <span class="power-hint">1..9 — скорость сжигания</span>
+  <span class="power-hint">1..9 — МБ/с</span>
   <button id="b-1m">жечь 1 МБ</button>
   <button id="b-10m">жечь 10 МБ</button>
   <button id="b-1g">жечь 1 ГБ</button>
+  <button id="b-cont">жечь, пока не остановлю</button>
   <button id="b-reset" class="danger">сбросить</button>
 </div>
 
 <div class="progress" id="progress"></div>
 <div class="burn-log" id="log"></div>
 
-<div class="foot"><span>СЖИГАТЕЛЬ · v1 · skiftare</span><span>огонь не задаёт вопросов</span></div>
+<div class="foot"><span>СЖИГАТЕЛЬ · v2 · skiftare</span><span>огонь не задаёт вопросов</span></div>
 </div>
 
 <script>
@@ -102,18 +118,30 @@ function save(k, v){ try { localStorage.setItem(k, String(v)); } catch(e){} }
 var total = load(K.total, 0), sessions = load(K.sessions, 0), best = load(K.best, 0);
 var session = 0, burning = false;
 
+var MB1080 = 40;   // МБ/мин, YouTube 1080p, средний битрейт
+var MB4K = 250;    // МБ/мин, YouTube 4K, средний битрейт
+
 var $ = function(id){ return document.getElementById(id); };
 function fmt(mb){
   if (mb >= 1024) return (mb/1024).toFixed(2) + ' ГБ';
   return Math.round(mb * 10) / 10 + ' МБ';
+}
+function minsFmt(mb, perMin){
+  var m = mb / perMin;
+  if (m < 1) return '<1 мин';
+  var mm = Math.round(m);
+  if (mm >= 60) { var h = Math.floor(mm / 60); return h + ' ч ' + String(mm - h * 60).padStart(2, '0') + ' мин'; }
+  return mm + ' мин';
 }
 function render(){
   $('c-session').innerHTML = fmt(session);
   $('c-total').innerHTML = fmt(total);
   $('c-sessions').textContent = String(sessions);
   $('c-best').innerHTML = fmt(best);
-  var b = Math.min(1, Math.log10(total + 1) / 3.2 + (burning ? 0.25 : 0));
+  var b = Math.min(1, Math.log10(total + 1) / 3.2 + (burning || cont ? 0.25 : 0));
   $('flame').style.setProperty('--burn', Math.max(0.12, Math.min(1, b)).toFixed(2));
+  $('e-session').innerHTML = 'сессия: ' + fmt(session) + ' — это ' + minsFmt(session, MB1080) + ' 1080p · ' + minsFmt(session, MB4K) + ' 4K';
+  $('e-total').innerHTML = 'всего:   ' + fmt(total) + ' — это ' + minsFmt(total, MB1080) + ' 1080p · ' + minsFmt(total, MB4K) + ' 4K';
 }
 function line(t){ var l = document.createElement('div'); l.className = 'line'; l.textContent = t; var log = $('log'); log.appendChild(l); while (log.children.length > 6) log.removeChild(log.firstChild); }
 
@@ -127,20 +155,25 @@ var QUOTES = [
   'дым пошёл из роутера (шутка)',
   'лимит тарифа вздрогнул'
 ];
+var CONT_QUOTES = [
+  'оператор пишет: «ну пожалуйста»',
+  '4K-стриминг нервно курит рядом',
+  'тариф уже не лимитный — он мемный',
+  'дым столбом, бабушка звонит, «что за дым»',
+  'кажется, я вижу дельту своими глазами'
+];
 function eq(mb){ return 'эквивалент: ' + (mb >= 1024 ? fmt(mb/1024) + ' ютуба в 480p' : Math.max(1, Math.round(mb*0.6)) + ' минут ютуба в 480p'); }
+function rate(){ return 0.4 + Math.min(9, Math.max(1, parseInt($('power').value, 10) || 3)) * 0.35; }
 
-var qidx = Math.floor(Math.random() * QUOTES.length);
+var qidx = Math.floor(Math.random() * QUOTES.length), cqidx = 0;
 function burn(amountMb){
-  if (burning) return;
-  var power = Math.min(9, Math.max(1, parseInt($('power').value, 10) || 3));
-  var rate = 0.4 + power * 0.35;              // МБ/с
-  var t = Math.max(0.35, Math.min(5, amountMb / rate));
+  if (burning || cont) return;
+  var t = Math.max(0.35, Math.min(5, amountMb / rate()));
   var totalChars = 18;
   burning = true;
   render();
-  $('b-1m').disabled = $('b-10m').disabled = $('b-1g').disabled = true;
+  setDiscreteDisabled(true);
   var started = Date.now();
-  var step = Math.max(30, Math.round(t * 1000 / 40));
   var timer = setInterval(function(){
     var p = Math.min(1, (Date.now() - started) / (t * 1000));
     var n = Math.floor(p * totalChars);
@@ -157,17 +190,60 @@ function burn(amountMb){
       line('скачано ' + fmt(amountMb) + ' мусора — сожжено');
       line(QUOTES[qidx % QUOTES.length]); qidx += 1;
       line(eq(amountMb));
-      $('b-1m').disabled = $('b-10m').disabled = $('b-1g').disabled = false;
+      setDiscreteDisabled(false);
     }
-  }, step);
+  }, 30);
+}
+function setDiscreteDisabled(d){ $('b-1m').disabled = $('b-10m').disabled = $('b-1g').disabled = d; }
+
+var cont = false, contTimer = null, contAcc = 0;
+function tickContinuous(){
+  var chunk = rate() * 0.4;
+  session += chunk; total += chunk; contAcc += chunk;
+  render();
+  save(K.total, total);
+  if (contAcc >= 4) {
+    line('ещё ' + fmt(contAcc) + ' в огонь, без остановки');
+    line(CONT_QUOTES[cqidx % CONT_QUOTES.length]); cqidx += 1;
+    contAcc = 0;
+  }
+}
+function startContinuous(){
+  if (burning || cont) return;
+  cont = true;
+  $('b-cont').textContent = 'стоп';
+  $('b-cont').classList.add('active');
+  $('flame').classList.add('blazing');
+  $('progress').textContent = '[▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒] безостановочное сжигание · ' + rate().toFixed(1) + ' МБ/с';
+  contTimer = setInterval(tickContinuous, 400);
+  line('режим «пока не остановлю» запущен');
+}
+function stopContinuous(){
+  if (!cont) return;
+  cont = false;
+  clearInterval(contTimer); contTimer = null;
+  if (session > 0) {
+    sessions += 1;
+    if (session > best) best = session;
+    save(K.sessions, sessions); save(K.best, best);
+  }
+  line('хватит. остановился на ' + fmt(session) + ' за сессию');
+  $('b-cont').textContent = 'жечь, пока не остановлю';
+  $('b-cont').classList.remove('active');
+  $('flame').classList.remove('blazing');
+  $('progress').textContent = '';
+  render();
 }
 
 $('b-1m').addEventListener('click', function(){ burn(1); });
 $('b-10m').addEventListener('click', function(){ burn(10); });
 $('b-1g').addEventListener('click', function(){ burn(1024); });
+$('b-cont').addEventListener('click', function(){ if (cont) stopContinuous(); else startContinuous(); });
 $('b-reset').addEventListener('click', function(){
+  if (cont) stopContinuous();
   if (!confirm('Сжечь статистику вместе с трафиком?')) return;
   total = session = sessions = best = 0;
+  contAcc = 0;
   save(K.total, 0); save(K.sessions, 0); save(K.best, 0);
   $('log').innerHTML = ''; $('progress').textContent = '';
   render();
