@@ -1,7 +1,8 @@
 <!doctype html>
 <html lang="ru">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="Сжигатель трафика — шуточный проект: жги мегабайты, смотри на огонь и на дельту 1080p против 4K.">
+<meta name="description" content="Сжигатель трафика — speedtest-пародия, которая реально жжёт твой трафик.">
+<meta name="robots" content="noindex,nofollow">
 <meta name="theme-color" content="#ffffff"><title>Сжигатель трафика</title>
 <style>
 :root{
@@ -16,7 +17,8 @@ body{margin:0;background:var(--bg);color:var(--fg);line-height:1.55}
 .top a{color:var(--link);text-decoration:none}
 .top a:hover{text-decoration:underline}
 h1{font-size:2rem;font-weight:700;margin:18px 0 6px}
-.sub{color:var(--muted);font-size:.92rem;max-width:60ch;margin:6px 0 28px}
+.sub{color:var(--muted);font-size:.92rem;max-width:64ch;margin:6px 0 22px}
+.warn{color:#8a0000;border:1px solid #8a0000;border-radius:10px;padding:8px 12px;font-size:.9rem;margin:0 0 22px}
 
 .flame{display:flex;justify-content:center;margin:8px 0 0}
 .flame svg{width:180px;height:150px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:calc(.35 + var(--burn, .15) * .65)}
@@ -56,17 +58,18 @@ button.danger:hover{background:#8a0000;color:#fff}
 button.active{background:#111;color:#fff;border-color:#111}
 .power-hint{color:var(--muted);font-size:.8rem}
 
-.progress{margin:16px 0 2px;font-size:.95rem;white-space:pre;min-height:1.3em}
+.speed{margin:16px 0 2px;font-size:1.05rem;white-space:pre;min-height:1.3em;font-weight:700}
 .burn-log{margin:10px 0 24px;border-top:1px solid var(--hr);padding-top:8px;color:var(--muted);font-size:.85rem;white-space:pre-wrap}
 .burn-log .line{margin:2px 0}
 .foot{margin-top:34px;border-top:1px solid var(--hr);padding-top:10px;color:var(--muted);font-size:.85rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
 </style>
 </head>
 <body><div class="wrap">
-<div class="top"><a href="../space.html">← пространство</a><span>localStorage · без сервера · без смысла</span></div>
+<div class="top"><a href="../space.html">← пространство</a><span>реальный трафик · без сервера · без смысла</span></div>
 
 <h1>Сжигатель трафика</h1>
-<p class="sub">Качаем мусор, сжигаем его и смотрим на огонь. Можно жечь порциями, а можно включить режим «пока не остановлю» — и смотреть, как 4K-эквивалент улетает дальше 1080p. Всё считается в твоём браузере, на сервер ничего не уходит.</p>
+<p class="sub">Speedtest-пародия, которая делает ровно то, что обещает: качает мусор и жжёт твои мегабайты. Скорость — настоящая, циферки — настоящие, огонь — условный.</p>
+<div class="warn">Осторожно: это трафик твоего тарифа. На безлимите — весело, на лимите — подумай дважды. Я не твой оператор.</div>
 
 <div class="flame" id="flame" style="--burn:0.15">
 <svg viewBox="0 0 120 100" fill="none" stroke="#111" stroke-width="1.6" stroke-linecap="round" aria-hidden="true">
@@ -93,20 +96,19 @@ button.active{background:#111;color:#fff;border-color:#111}
 </div>
 
 <div class="controls">
-  <label for="power">мощность</label>
-  <input type="number" id="power" min="1" max="9" step="1" value="3" inputmode="numeric">
-  <span class="power-hint">1..9 — МБ/с</span>
-  <button id="b-1m">жечь 1 МБ</button>
-  <button id="b-10m">жечь 10 МБ</button>
-  <button id="b-1g">жечь 1 ГБ</button>
+  <label for="power">потоки</label>
+  <input type="number" id="power" min="1" max="16" step="1" value="4" inputmode="numeric">
+  <span class="power-hint">1..16 — параллельных качалок</span>
+  <button id="b-16">сжечь 16 МБ</button>
+  <button id="b-30">жечь 30 сек</button>
   <button id="b-cont">жечь, пока не остановлю</button>
   <button id="b-reset" class="danger">сбросить</button>
 </div>
 
-<div class="progress" id="progress"></div>
+<div class="speed" id="speed">на паузе — жми кнопку</div>
 <div class="burn-log" id="log"></div>
 
-<div class="foot"><span>СЖИГАТЕЛЬ · v2 · skiftare</span><span>огонь не задаёт вопросов</span></div>
+<div class="foot"><span>СЖИГАТЕЛЬ · skiftare</span><span>огонь не задаёт вопросов</span></div>
 </div>
 
 <script>
@@ -116,10 +118,12 @@ var K = { total:'burn_total_v1', sessions:'burn_sessions_v1', best:'burn_best_v1
 function load(k, d){ try { var v = localStorage.getItem(k); return v === null ? d : parseFloat(v) || d; } catch(e){ return d; } }
 function save(k, v){ try { localStorage.setItem(k, String(v)); } catch(e){} }
 var total = load(K.total, 0), sessions = load(K.sessions, 0), best = load(K.best, 0);
-var session = 0, burning = false;
+var session = 0;
 
-var MB1080 = 40;   // МБ/мин, YouTube 1080p, средний битрейт
-var MB4K = 250;    // МБ/мин, YouTube 4K, средний битрейт
+var MB1080 = 40, MB4K = 250;   // МБ/мин, YouTube средний битрейт
+var JUNK = 'junk.bin';
+var active = 0, runActive = false, stopFlag = false, streamsDone = 0, streamsLeft = 0;
+var runBytes = 0, runStart = 0;
 
 var $ = function(id){ return document.getElementById(id); };
 function fmt(mb){
@@ -133,15 +137,20 @@ function minsFmt(mb, perMin){
   if (mm >= 60) { var h = Math.floor(mm / 60); return h + ' ч ' + String(mm - h * 60).padStart(2, '0') + ' мин'; }
   return mm + ' мин';
 }
+function mbs(){ return (session - runBytes) / Math.max(0.05, (Date.now() - runStart) / 1000); }
 function render(){
   $('c-session').innerHTML = fmt(session);
   $('c-total').innerHTML = fmt(total);
   $('c-sessions').textContent = String(sessions);
   $('c-best').innerHTML = fmt(best);
-  var b = Math.min(1, Math.log10(total + 1) / 3.2 + (burning || cont ? 0.25 : 0));
+  var b = Math.min(1, Math.log10(total + 1) / 3.2 + (runActive ? 0.35 : 0));
   $('flame').style.setProperty('--burn', Math.max(0.12, Math.min(1, b)).toFixed(2));
   $('e-session').innerHTML = 'сессия: ' + fmt(session) + ' — это ' + minsFmt(session, MB1080) + ' 1080p · ' + minsFmt(session, MB4K) + ' 4K';
   $('e-total').innerHTML = 'всего:   ' + fmt(total) + ' — это ' + minsFmt(total, MB1080) + ' 1080p · ' + minsFmt(total, MB4K) + ' 4K';
+  if (runActive) {
+    var pw = parseInt($('power').value, 10) || 4;
+    $('speed').textContent = '[' + '▮'.repeat(Math.min(active, pw)) + '░'.repeat(Math.max(0, pw - active)) + '] ' + active + ' потоков · ' + mbs().toFixed(1) + ' МБ/с · ' + Math.round(mbs() * 8) + ' Мбит/с · за раунд ' + fmt(session - runBytes);
+  }
 }
 function line(t){ var l = document.createElement('div'); l.className = 'line'; l.textContent = t; var log = $('log'); log.appendChild(l); while (log.children.length > 6) log.removeChild(log.firstChild); }
 
@@ -153,106 +162,119 @@ var QUOTES = [
   'коллеги не поняли, зачем',
   'огонь не задаёт вопросов',
   'дым пошёл из роутера (шутка)',
-  'лимит тарифа вздрогнул'
+  'лимит тарифа вздрогнул',
+  'мой DNS спросил, чем я занят',
+  'роутер перегревается от сочувствия'
 ];
 var CONT_QUOTES = [
   'оператор пишет: «ну пожалуйста»',
   '4K-стриминг нервно курит рядом',
   'тариф уже не лимитный — он мемный',
   'дым столбом, бабушка звонит, «что за дым»',
-  'кажется, я вижу дельту своими глазами'
+  'кажется, я вижу дельту своими глазами',
+  'speedtest-серверы позавидовали нагрузке'
 ];
 function eq(mb){
-  var mins = mb / 2.5;                     // 480p ≈ 2.5 МБ/мин
+  var mins = mb / 2.5;
   if (mins >= 60) return 'эквивалент: ' + (mins / 60).toFixed(1) + ' ч ютуба в 480p';
   return 'эквивалент: ' + Math.max(1, Math.round(mins)) + ' мин ютуба в 480p';
 }
-function rate(){ return 0.4 + Math.min(9, Math.max(1, parseInt($('power').value, 10) || 3)) * 0.35; }
+function power(){ return Math.min(16, Math.max(1, parseInt($('power').value, 10) || 4)); }
 
-var qidx = Math.floor(Math.random() * QUOTES.length), cqidx = 0;
-function burn(amountMb){
-  if (burning || cont) return;
-  var t = Math.max(0.35, Math.min(5, amountMb / rate()));
-  var totalChars = 18;
-  burning = true;
-  render();
-  setDiscreteDisabled(true);
-  var started = Date.now();
-  var timer = setInterval(function(){
-    var p = Math.min(1, (Date.now() - started) / (t * 1000));
-    var n = Math.floor(p * totalChars);
-    $('progress').textContent = '[' + '█'.repeat(n) + '░'.repeat(totalChars - n) + '] ' + fmt(amountMb * p) + ' из ' + fmt(amountMb);
-    if (p >= 1) {
-      clearInterval(timer);
-      session += amountMb; total += amountMb;
-      if (session > best) best = session;
-      sessions += 1;
-      save(K.total, total); save(K.sessions, sessions); save(K.best, best);
-      burning = false;
-      render();
-      $('progress').textContent = '';
-      line('скачано ' + fmt(amountMb) + ' мусора — сожжено');
-      line(QUOTES[qidx % QUOTES.length]); qidx += 1;
-      line(eq(amountMb));
-      setDiscreteDisabled(false);
-    }
-  }, 30);
-}
-function setDiscreteDisabled(d){ $('b-1m').disabled = $('b-10m').disabled = $('b-1g').disabled = d; }
-
-var cont = false, contTimer = null, contAcc = 0;
-function tickContinuous(){
-  var chunk = rate() * 0.4;
-  session += chunk; total += chunk; contAcc += chunk;
-  render();
-  save(K.total, total);
-  if (contAcc >= 4) {
-    line('ещё ' + fmt(contAcc) + ' в огонь, без остановки');
-    line(CONT_QUOTES[cqidx % CONT_QUOTES.length]); cqidx += 1;
-    contAcc = 0;
+var qidx = Math.floor(Math.random() * QUOTES.length), cqidx = 0, sinceQuote = 0;
+function maybeQuote(){
+  sinceQuote++;
+  if (sinceQuote >= 3) {
+    sinceQuote = 0;
+    var pool = (contRun ? CONT_QUOTES : QUOTES);
+    line(pool[(contRun ? cqidx++ : qidx++) % pool.length]);
   }
 }
-function startContinuous(){
-  if (burning || cont) return;
-  cont = true;
+
+function fetchStream(){
+  var url = JUNK + '?b=' + Math.random().toString(36).slice(2) + Date.now();
+  return fetch(url, { cache: 'no-store' }).then(function(r){
+    if (!r.ok) return 0;
+    return r.arrayBuffer().then(function(buf){ return buf.byteLength / 1048576; });
+  }).catch(function(){ return 0; });
+}
+function pump(){
+  if (stopFlag) return;
+  active++;
+  fetchStream().then(function(nb){
+    active--;
+    if (nb > 0) { session += nb; total += nb; streamsDone++; maybeQuote(); render(); }
+    if (streamsLeft > 0 && streamsDone >= streamsLeft) { stopRun(); return; }
+    if (!stopFlag) pump();
+  }).catch(function(){
+    active--;
+    if (!stopFlag) pump();
+  });
+}
+function beginRun(opts){
+  if (runActive) return;
+  opts = opts || {};
+  runActive = true; stopFlag = false; streamsDone = 0; sinceQuote = 0;
+  streamsLeft = opts.maxStreams || 0;
+  runBytes = session; runStart = Date.now();
+  var n = opts.streams || power();
+  for (var i = 0; i < n; i++) pump();
+  setRunDisabled(true);
+  $('speed').textContent = 'поехали…';
+  if (opts.tag) line(opts.tag);
+  if (opts.seconds) setTimeout(function(){ stopRun(); }, opts.seconds * 1000);
+}
+var contRun = false;
+function stopRun(){
+  if (!runActive) return;
+  stopFlag = true;
+  var wait = function(){
+    if (active > 0) { setTimeout(wait, 120); return; }
+    var secs = (Date.now() - runStart) / 1000;
+    var avg = (session - runBytes) / Math.max(0.1, secs);
+    runActive = false; contRun = false;
+    line('раунд закрыт: ' + fmt(session - runBytes) + ' за ' + (secs < 60 ? Math.round(secs) + ' с' : (secs/60).toFixed(1) + ' мин') + ', средняя ' + avg.toFixed(1) + ' МБ/с');
+    line(eq(session - runBytes));
+    if (session - runBytes > 1) {
+      sessions += 1;
+      if (session > best) best = session;
+      save(K.sessions, sessions); save(K.best, best);
+    }
+    save(K.total, total);
+    render();
+    setRunDisabled(false);
+    $('b-cont').textContent = 'жечь, пока не остановлю';
+    $('b-cont').classList.remove('active');
+    $('flame').classList.remove('blazing');
+    $('speed').textContent = 'на паузе — жми кнопку';
+  };
+  wait();
+}
+function setRunDisabled(d){ $('b-16').disabled = $('b-30').disabled = d; }
+
+$('b-16').addEventListener('click', function(){ beginRun({ streams: 1, maxStreams: 1, tag: 'один поток, 16 МБ — поехали' }); });
+$('b-30').addEventListener('click', function(){ beginRun({ streams: power(), seconds: 30, tag: 'раунд 30 сек, ' + power() + ' потоков' }); });
+$('b-cont').addEventListener('click', function(){
+  if (runActive && contRun) { stopRun(); return; }
+  if (runActive) return;
+  contRun = true;
+  beginRun({ streams: power(), tag: 'режим «пока не остановлю», ' + power() + ' потоков' });
   $('b-cont').textContent = 'стоп';
   $('b-cont').classList.add('active');
   $('flame').classList.add('blazing');
-  $('progress').textContent = '[▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒▒] безостановочное сжигание · ' + rate().toFixed(1) + ' МБ/с';
-  contTimer = setInterval(tickContinuous, 400);
-  line('режим «пока не остановлю» запущен');
-}
-function stopContinuous(){
-  if (!cont) return;
-  cont = false;
-  clearInterval(contTimer); contTimer = null;
-  if (session > 0) {
-    sessions += 1;
-    if (session > best) best = session;
-    save(K.sessions, sessions); save(K.best, best);
-  }
-  line('хватит. остановился на ' + fmt(session) + ' за сессию');
-  $('b-cont').textContent = 'жечь, пока не остановлю';
-  $('b-cont').classList.remove('active');
-  $('flame').classList.remove('blazing');
-  $('progress').textContent = '';
-  render();
-}
-
-$('b-1m').addEventListener('click', function(){ burn(1); });
-$('b-10m').addEventListener('click', function(){ burn(10); });
-$('b-1g').addEventListener('click', function(){ burn(1024); });
-$('b-cont').addEventListener('click', function(){ if (cont) stopContinuous(); else startContinuous(); });
+});
 $('b-reset').addEventListener('click', function(){
-  if (cont) stopContinuous();
+  if (runActive) stopRun();
   if (!confirm('Сжечь статистику вместе с трафиком?')) return;
   total = session = sessions = best = 0;
-  contAcc = 0;
   save(K.total, 0); save(K.sessions, 0); save(K.best, 0);
-  $('log').innerHTML = ''; $('progress').textContent = '';
+  $('log').innerHTML = '';
   render();
   line('всё сгорело. начинаем с нуля');
 });
+setInterval(function(){
+  if (runActive) { render(); save(K.total, total); }
+}, 500);
 if (total > 0) line('здесь уже горело: ' + fmt(total));
 render();
 })();
