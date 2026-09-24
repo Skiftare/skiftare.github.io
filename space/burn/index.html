@@ -22,11 +22,12 @@ h1{font-size:2rem;font-weight:700;margin:18px 0 6px}
 
 .flame{display:flex;justify-content:center;margin:8px 0 0}
 .flame svg{width:180px;height:150px;fill:none;stroke:#111;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;opacity:calc(.35 + var(--burn, .15) * .65)}
-.flame .f1{animation:fr 140ms steps(3) infinite}
-.flame .f2{animation:fr2 190ms steps(2) infinite}
-.flame .f3{animation:fr 230ms steps(3) infinite reverse}
 @keyframes fr{from{opacity:.75;transform:scaleY(1)}to{opacity:1;transform:scaleY(1.06)}}
 @keyframes fr2{from{opacity:.8;transform:scaleX(.92)}to{opacity:1;transform:scaleX(1.05)}}
+/* пламя дрожит ТОЛЬКО когда жжём: в покое — статичный огонёк */
+.flame.running .f1{animation:fr 140ms steps(3) infinite}
+.flame.running .f2{animation:fr2 190ms steps(2) infinite}
+.flame.running .f3{animation:fr 230ms steps(3) infinite reverse}
 .flame.blazing svg{opacity:1}
 .flame.blazing .f1{animation:fr 80ms steps(2) infinite}
 .flame.blazing .f2{animation:fr2 110ms steps(2) infinite}
@@ -97,9 +98,9 @@ button.active{background:#111;color:#fff;border-color:#111}
   <label for="power">потоки</label>
   <input type="number" id="power" min="1" max="16" step="1" value="4" inputmode="numeric">
   <span class="power-hint">1..16 — параллельных качалок</span>
-  <button id="b-16">сжечь 16 МБ</button>
-  <button id="b-30">жечь 30 сек</button>
-  <button id="b-cont">жечь, пока не остановлю</button>
+  <button id="b-12m">жечь 12 минут</button>
+  <button id="b-1g">жечь 1 гигабайт</button>
+  <button id="b-cont">жечь пока не остановлю</button>
   <button id="b-reset" class="danger">сбросить</button>
 </div>
 
@@ -120,7 +121,7 @@ var session = 0;
 
 var MB1080 = 40, MB4K = 250;   // МБ/мин, YouTube средний битрейт
 var JUNK = 'junk.bin';
-var active = 0, runActive = false, stopFlag = false, streamsDone = 0, streamsLeft = 0;
+var active = 0, runActive = false, stopFlag = false, runMaxBytes = 0;
 var runBytes = 0, runStart = 0;
 
 var $ = function(id){ return document.getElementById(id); };
@@ -201,8 +202,8 @@ function pump(){
   active++;
   fetchStream().then(function(nb){
     active--;
-    if (nb > 0) { session += nb; total += nb; streamsDone++; maybeQuote(); render(); }
-    if (streamsLeft > 0 && streamsDone >= streamsLeft) { stopRun(); return; }
+    if (nb > 0) { session += nb; total += nb; maybeQuote(); render(); }
+    if (runMaxBytes > 0 && (session - runBytes) >= runMaxBytes) { stopRun(); return; }
     if (!stopFlag) pump();
   }).catch(function(){
     active--;
@@ -212,12 +213,13 @@ function pump(){
 function beginRun(opts){
   if (runActive) return;
   opts = opts || {};
-  runActive = true; stopFlag = false; streamsDone = 0; sinceQuote = 0;
-  streamsLeft = opts.maxStreams || 0;
+  runActive = true; stopFlag = false;
+  runMaxBytes = opts.maxBytes || 0;
   runBytes = session; runStart = Date.now();
   var n = opts.streams || power();
   for (var i = 0; i < n; i++) pump();
   setRunDisabled(true);
+  $('flame').classList.add('running');
   $('speed').textContent = 'поехали…';
   if (opts.tag) line(opts.tag);
   if (opts.seconds) setTimeout(function(){ stopRun(); }, opts.seconds * 1000);
@@ -230,7 +232,7 @@ function stopRun(){
     if (active > 0) { setTimeout(wait, 120); return; }
     var secs = (Date.now() - runStart) / 1000;
     var avg = (session - runBytes) / Math.max(0.1, secs);
-    runActive = false; contRun = false;
+    runActive = false; contRun = false; runMaxBytes = 0;
     line('раунд закрыт: ' + fmt(session - runBytes) + ' за ' + (secs < 60 ? Math.round(secs) + ' с' : (secs/60).toFixed(1) + ' мин') + ', средняя ' + avg.toFixed(1) + ' МБ/с');
     line(eq(session - runBytes));
     if (session - runBytes > 1) {
@@ -241,20 +243,20 @@ function stopRun(){
     save(K.total, total);
     render();
     setRunDisabled(false);
-    $('b-cont').textContent = 'жечь, пока не остановлю';
+    $('b-cont').textContent = 'жечь пока не остановлю';
     $('b-cont').classList.remove('active');
     $('flame').classList.remove('blazing');
+    $('flame').classList.remove('running');
     $('speed').textContent = 'на паузе — жми кнопку';
   };
   wait();
 }
-function setRunDisabled(d){ $('b-16').disabled = $('b-30').disabled = d; }
+function setRunDisabled(d){ $('b-12m').disabled = $('b-1g').disabled = d; }
 
-$('b-16').addEventListener('click', function(){ beginRun({ streams: 1, maxStreams: 1, tag: 'один поток, 16 МБ — поехали' }); });
-$('b-30').addEventListener('click', function(){ beginRun({ streams: power(), seconds: 30, tag: 'раунд 30 сек, ' + power() + ' потоков' }); });
+$('b-12m').addEventListener('click', function(){ beginRun({ streams: power(), seconds: 720, tag: 'раунд 12 минут, ' + power() + ' потоков' }); });
+$('b-1g').addEventListener('click', function(){ beginRun({ streams: power(), maxBytes: 1024, tag: 'цель 1 гигабайт, ' + power() + ' потоков' }); });
 $('b-cont').addEventListener('click', function(){
-  if (runActive && contRun) { stopRun(); return; }
-  if (runActive) return;
+  if (runActive) { stopRun(); return; }
   contRun = true;
   beginRun({ streams: power(), tag: 'режим «пока не остановлю», ' + power() + ' потоков' });
   $('b-cont').textContent = 'стоп';
